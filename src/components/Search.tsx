@@ -41,7 +41,13 @@ export const Search: FC<SearchProps> = ({ onSubmit }) => {
   };
 
   return (
-    <form onSubmit={handleSubmit}>
+    <form
+      onSubmit={(e) => {
+        e.preventDefault();
+        handleSubmit();
+        inputRef.current?.blur();
+      }}
+    >
       <Box position="relative" className="ais-SearchBox">
         <InputGroup w="360px" endElement={endElement} position="relative">
           <Input
