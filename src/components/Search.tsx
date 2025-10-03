@@ -55,7 +55,6 @@ export const Search: FC<SearchProps> = ({ onSubmit }) => {
             placeholder="Search"
             value={value}
             onChange={(e) => {
-              refine(e.currentTarget.value);
               setValue(e.currentTarget.value);
             }}
             onBlur={() =>
