@@ -9,46 +9,48 @@ import {
 } from "@chakra-ui/react";
 import { useRef, useState, type FC } from "react";
 import { useHits, useSearchBox } from "react-instantsearch";
-import type { SearchState } from "../types/types";
+import { useOutsideClick } from "./useOutsideClick";
 
 interface SearchProps {
-  setFrozen: (value: boolean) => void;
-  setSearchState: React.Dispatch<React.SetStateAction<SearchState>>;
+  setSearchQuery: (value: string) => void;
 }
 
-export const Search: FC<SearchProps> = ({ setFrozen, setSearchState }) => {
-  const { refine } = useSearchBox();
-  const [value, setValue] = useState("");
-  const [isOpen, setIsOpen] = useState(false);
+export const Search: FC<SearchProps> = ({ setSearchQuery }) => {
+  const { refine, query, clear } = useSearchBox();
+  const { items } = useHits();
+  const [focused, setFocused] = useState(false);
   const inputRef = useRef<HTMLInputElement | null>(null);
-  const results = useHits();
 
-  const endElement = value ? (
-    <CloseButton
-      size="xs"
-      onClick={(e) => {
-        refine("");
-        setValue("");
-        setSearchState({ isEditMode: false, query: "" });
-        inputRef.current?.blur();
-        e.stopPropagation();
-      }}
-      me="-2"
-    />
+  const open = focused && !!query && items.length > 0;
+
+  useOutsideClick(inputRef, () => {
+    setTimeout(() => {
+      handleSelect(inputRef.current?.value || "");
+    }, 100);
+  });
+
+  const reset = () => {
+    clear();
+    setSearchQuery("");
+    inputRef.current?.blur();
+  };
+
+  const endElement = query ? (
+    <CloseButton size="xs" onClick={reset} me="-2" />
   ) : undefined;
 
-  const handleSubmit = () => {
-    refine(value);
-    setIsOpen(false);
-    setSearchState((prev) => ({ ...prev, query: value }));
+  const handleSelect = (name: string) => {
+    refine(name);
+    setSearchQuery(name);
+    setFocused(false);
   };
 
   return (
     <form
       onSubmit={(e) => {
         e.preventDefault();
-        handleSubmit();
-        inputRef.current?.blur();
+        setSearchQuery(query);
+        setFocused(false);
       }}
     >
       <Box position="relative" className="ais-SearchBox">
@@ -56,49 +58,32 @@ export const Search: FC<SearchProps> = ({ setFrozen, setSearchState }) => {
           <Input
             ref={inputRef}
             placeholder="Search"
-            value={value}
+            value={query}
             onChange={(e) => {
-              setValue(e.currentTarget.value);
-              refine(e.currentTarget.value);
-            }}
-            onBlur={() => {
-              setTimeout(() => {
-                handleSubmit();
-                setFrozen(false);
-                setSearchState((prev) => ({ ...prev, isEditMode: false }));
-              }, 100);
+              const q = e.currentTarget.value;
+              refine(q);
             }}
             onFocus={() => {
-              setIsOpen(true);
-              setFrozen(true);
-              setSearchState((prev) => ({ ...prev, isEditMode: true }));
+              setFocused(true);
             }}
           />
         </InputGroup>
-        {isOpen && value && results.items.length > 0 && (
+        {open && (
           <List.Root
             w="360px"
-            overflow="scroll"
+            overflow="auto"
             pos="absolute"
             zIndex={1}
             bg="white"
             border="1px solid"
             h="380px"
           >
-            <For each={results.items}>
+            <For each={items}>
               {(item) => (
                 <List.Item
-                  cursor="pointer"
                   key={item.objectID}
-                  onClick={() => {
-                    setValue(item.name);
-                    refine(item.name);
-                    setIsOpen(false);
-                    setSearchState({
-                      query: item.name,
-                      isEditMode: false,
-                    });
-                  }}
+                  cursor="pointer"
+                  onClick={() => handleSelect(item.name)}
                 >
                   <Text color="black" fontWeight="medium" truncate>
                     {item.name}

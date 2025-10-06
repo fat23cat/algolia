@@ -34,7 +34,11 @@ export const FiltersAccordion: FC<FiltersAccordionProps> = ({ groups }) => {
           <Accordion.Root multiple>
             <For each={groups}>
               {(group) => (
-                <Accordion.Item value={group.title} border="none">
+                <Accordion.Item
+                  key={group.title}
+                  value={group.title}
+                  border="none"
+                >
                   <Accordion.ItemTrigger p="8px 24px">
                     <Span>
                       {group.title} (
