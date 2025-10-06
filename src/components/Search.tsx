@@ -9,12 +9,14 @@ import {
 } from "@chakra-ui/react";
 import { useRef, useState, type FC } from "react";
 import { useHits, useSearchBox } from "react-instantsearch";
+import type { SearchState } from "../types/types";
 
 interface SearchProps {
-  onSubmit: (value: boolean) => void;
+  setFrozen: (value: boolean) => void;
+  setSearchState: React.Dispatch<React.SetStateAction<SearchState>>;
 }
 
-export const Search: FC<SearchProps> = ({ onSubmit }) => {
+export const Search: FC<SearchProps> = ({ setFrozen, setSearchState }) => {
   const { refine } = useSearchBox();
   const [value, setValue] = useState("");
   const [isOpen, setIsOpen] = useState(false);
@@ -24,11 +26,12 @@ export const Search: FC<SearchProps> = ({ onSubmit }) => {
   const endElement = value ? (
     <CloseButton
       size="xs"
-      onClick={() => {
+      onClick={(e) => {
         refine("");
         setValue("");
-        inputRef.current?.focus();
-        onSubmit(false);
+        setSearchState({ isEditMode: false, query: "" });
+        inputRef.current?.blur();
+        e.stopPropagation();
       }}
       me="-2"
     />
@@ -37,7 +40,7 @@ export const Search: FC<SearchProps> = ({ onSubmit }) => {
   const handleSubmit = () => {
     refine(value);
     setIsOpen(false);
-    onSubmit(!!value);
+    setSearchState((prev) => ({ ...prev, query: value }));
   };
 
   return (
@@ -56,13 +59,20 @@ export const Search: FC<SearchProps> = ({ onSubmit }) => {
             value={value}
             onChange={(e) => {
               setValue(e.currentTarget.value);
+              refine(e.currentTarget.value);
             }}
-            onBlur={() =>
+            onBlur={() => {
               setTimeout(() => {
                 handleSubmit();
-              }, 100)
-            }
-            onFocus={() => setIsOpen(true)}
+                setFrozen(false);
+                setSearchState((prev) => ({ ...prev, isEditMode: false }));
+              }, 100);
+            }}
+            onFocus={() => {
+              setIsOpen(true);
+              setFrozen(true);
+              setSearchState((prev) => ({ ...prev, isEditMode: true }));
+            }}
           />
         </InputGroup>
         {isOpen && value && results.items.length > 0 && (
@@ -84,7 +94,10 @@ export const Search: FC<SearchProps> = ({ onSubmit }) => {
                     setValue(item.name);
                     refine(item.name);
                     setIsOpen(false);
-                    onSubmit(true);
+                    setSearchState({
+                      query: item.name,
+                      isEditMode: false,
+                    });
                   }}
                 >
                   <Text color="black" fontWeight="medium" truncate>

@@ -3,18 +3,23 @@ import { Search } from "./Search";
 import type { FC } from "react";
 import { useRefinementList } from "react-instantsearch";
 import { FiltersAccordion } from "./FiltersAccordion";
+import type { SearchState } from "../types/types";
 
 interface LeftPanelProps {
-  onSubmit: (value: boolean) => void;
+  setFrozen: (value: boolean) => void;
+  setSearchState: React.Dispatch<React.SetStateAction<SearchState>>;
 }
 
-export const LeftPanel: FC<LeftPanelProps> = ({ onSubmit }) => {
+export const LeftPanel: FC<LeftPanelProps> = ({
+  setFrozen,
+  setSearchState,
+}) => {
   const categories = useRefinementList({ attribute: "categories", limit: 30 });
   const brand = useRefinementList({ attribute: "brand", limit: 30 });
 
   return (
     <VStack gap="24px" w="360px" h="100%" align="start">
-      <Search onSubmit={onSubmit} />
+      <Search setFrozen={setFrozen} setSearchState={setSearchState} />
       <FiltersAccordion
         groups={[
           {
