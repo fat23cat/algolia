@@ -1,35 +1,30 @@
 import { Center, For, ScrollArea, VStack } from "@chakra-ui/react";
-import { useEffect, type FC } from "react";
-import {
-  useConfigure,
-  useHits,
-  useInstantSearch,
-  useSearchBox,
-} from "react-instantsearch";
+import { useEffect, useState, type FC } from "react";
+import { useConfigure, useHits, useInstantSearch } from "react-instantsearch";
+import type { SearchState } from "../types/types";
 
 interface RightPanelProps {
-  searchQuery: string;
+  searchState: SearchState;
 }
 
-export const RightPanel: FC<RightPanelProps> = ({ searchQuery }) => {
-  const { refine, clear } = useSearchBox();
+export const RightPanel: FC<RightPanelProps> = ({ searchState }) => {
   useConfigure({ hitsPerPage: 100 });
   const results = useHits();
   const { status } = useInstantSearch();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [frozenItems, setFrozenItems] = useState<any[]>([]);
 
   useEffect(() => {
-    if (searchQuery) {
-      refine(searchQuery);
-    } else {
-      clear();
+    if (!searchState.isEditing) {
+      setFrozenItems(results.items);
     }
-  }, [refine, clear, searchQuery]);
+  }, [searchState.isEditing, results.items]);
 
-  if (!searchQuery) {
+  if (!searchState.query) {
     return null;
   }
 
-  if (status === "loading") {
+  if (status === "loading" && !searchState.isEditing) {
     return <Center w="100%">Loading...</Center>;
   }
 
@@ -38,7 +33,7 @@ export const RightPanel: FC<RightPanelProps> = ({ searchQuery }) => {
       <ScrollArea.Viewport>
         <ScrollArea.Content paddingEnd="3" textStyle="sm">
           <VStack gap="16px" align="start" w="100%">
-            <For each={results.items}>
+            <For each={frozenItems}>
               {(item) => <div key={item.objectID}>{item.name}</div>}
             </For>
           </VStack>

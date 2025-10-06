@@ -9,13 +9,13 @@ import {
 } from "@chakra-ui/react";
 import { useRef, useState, type FC } from "react";
 import { useHits, useSearchBox } from "react-instantsearch";
-import { useOutsideClick } from "./useOutsideClick";
+import type { SearchState } from "../types/types";
 
 interface SearchProps {
-  setSearchQuery: (value: string) => void;
+  setSearchState: React.Dispatch<React.SetStateAction<SearchState>>;
 }
 
-export const Search: FC<SearchProps> = ({ setSearchQuery }) => {
+export const Search: FC<SearchProps> = ({ setSearchState }) => {
   const { refine, query, clear } = useSearchBox();
   const { items } = useHits();
   const [focused, setFocused] = useState(false);
@@ -23,15 +23,9 @@ export const Search: FC<SearchProps> = ({ setSearchQuery }) => {
 
   const open = focused && !!query && items.length > 0;
 
-  useOutsideClick(inputRef, () => {
-    setTimeout(() => {
-      handleSelect(inputRef.current?.value || "");
-    }, 100);
-  });
-
   const reset = () => {
     clear();
-    setSearchQuery("");
+    setSearchState({ query: "", isEditing: false });
     inputRef.current?.blur();
   };
 
@@ -39,9 +33,9 @@ export const Search: FC<SearchProps> = ({ setSearchQuery }) => {
     <CloseButton size="xs" onClick={reset} me="-2" />
   ) : undefined;
 
-  const handleSelect = (name: string) => {
-    refine(name);
-    setSearchQuery(name);
+  const handleSelect = (query: string) => {
+    refine(query);
+    setSearchState({ query, isEditing: false });
     setFocused(false);
   };
 
@@ -49,7 +43,7 @@ export const Search: FC<SearchProps> = ({ setSearchQuery }) => {
     <form
       onSubmit={(e) => {
         e.preventDefault();
-        setSearchQuery(query);
+        setSearchState({ query, isEditing: false });
         setFocused(false);
       }}
     >
@@ -65,6 +59,12 @@ export const Search: FC<SearchProps> = ({ setSearchQuery }) => {
             }}
             onFocus={() => {
               setFocused(true);
+              setSearchState((s) => ({ ...s, isEditing: true }));
+            }}
+            onBlur={() => {
+              setTimeout(() => {
+                handleSelect(inputRef.current?.value || "");
+              }, 100);
             }}
           />
         </InputGroup>
