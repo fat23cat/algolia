@@ -1,43 +1,38 @@
 import { Center, Flex, For, ScrollArea, Text, VStack } from "@chakra-ui/react";
-import { useEffect, useState, type FC } from "react";
+import { type FC } from "react";
 import { useConfigure, useHits, useInstantSearch } from "react-instantsearch";
-import type { SearchState } from "../types/types";
 
 interface RightPanelProps {
-  searchState: SearchState;
+  search: string;
 }
 
-export const RightPanel: FC<RightPanelProps> = ({ searchState }) => {
+export const RightPanel: FC<RightPanelProps> = ({ search }) => {
   useConfigure({ hitsPerPage: 100 });
   const results = useHits();
   const { status } = useInstantSearch();
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const [frozenItems, setFrozenItems] = useState<any[]>([]);
 
-  useEffect(() => {
-    if (!searchState.isEditing) {
-      setFrozenItems(results.items);
-    }
-  }, [searchState.isEditing, results.items]);
-
-  if (!searchState.query) {
+  if (!search) {
     return null;
   }
 
-  if (status === "loading" && !searchState.isEditing) {
-    return <Center w="100%">Loading...</Center>;
+  if (status === "loading") {
+    return (
+      <Center w="100%" h="100%">
+        Loading...
+      </Center>
+    );
   }
 
   return (
     <VStack h="100%" w="100%" align="start" gap="24px">
       <Flex w="100%" justify="space-between" align="center">
-        <Text>{frozenItems.length} objects found</Text>
+        <Text>{results.items.length} objects found</Text>
       </Flex>
       <ScrollArea.Root variant="always">
         <ScrollArea.Viewport>
           <ScrollArea.Content paddingEnd="3" textStyle="sm">
             <VStack gap="16px" align="start" w="100%">
-              <For each={frozenItems}>
+              <For each={results.items}>
                 {(item) => (
                   <VStack
                     align="start"

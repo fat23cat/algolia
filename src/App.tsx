@@ -2,18 +2,21 @@ import { HStack } from "@chakra-ui/react";
 import { LeftPanel } from "./components/LeftPanel";
 import { RightPanel } from "./components/RightPanel";
 import { useState } from "react";
-import type { SearchState } from "./types/types";
+import { useSearchBox } from "react-instantsearch";
 
 function App() {
-  const [searchState, setSearchState] = useState<SearchState>({
-    query: "",
-    isEditing: false,
-  });
+  const { refine } = useSearchBox();
+  const [search, setSearch] = useState("");
+
+  const onSearchChange = (value: string) => {
+    setSearch(value);
+    refine(value);
+  };
 
   return (
     <HStack gap="24px" p="16px" align="start" h="100%">
-      <LeftPanel setSearchState={setSearchState} />
-      <RightPanel searchState={searchState} />
+      <LeftPanel setSearch={onSearchChange} />
+      <RightPanel search={search} />
     </HStack>
   );
 }

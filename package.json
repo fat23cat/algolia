@@ -10,6 +10,8 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@algolia/autocomplete-core": "^1.19.4",
+    "@algolia/autocomplete-plugin-query-suggestions": "^1.19.4",
     "@chakra-ui/react": "^3.27.0",
     "@emotion/react": "^11.14.0",
     "algoliasearch": "^5.39.0",

@@ -1,21 +1,20 @@
 import { VStack } from "@chakra-ui/react";
-import { Search } from "./Search";
 import type { FC } from "react";
 import { useRefinementList } from "react-instantsearch";
 import { FiltersAccordion } from "./FiltersAccordion";
-import type { SearchState } from "../types/types";
+import { Autocomplete } from "./Autocomplete";
 
 interface LeftPanelProps {
-  setSearchState: React.Dispatch<React.SetStateAction<SearchState>>;
+  setSearch: (value: string) => void;
 }
 
-export const LeftPanel: FC<LeftPanelProps> = ({ setSearchState }) => {
+export const LeftPanel: FC<LeftPanelProps> = ({ setSearch }) => {
   const categories = useRefinementList({ attribute: "categories", limit: 30 });
   const brand = useRefinementList({ attribute: "brand", limit: 30 });
 
   return (
     <VStack gap="24px" w="360px" h="100%" align="start">
-      <Search setSearchState={setSearchState} />
+      <Autocomplete setSearch={setSearch} />
       <FiltersAccordion
         groups={[
           {
